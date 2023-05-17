@@ -37,6 +37,34 @@ char ma[22][22] =   {
                         {' ',' ','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-',' '},
                     };
 
+struct coord{
+    int x, y;
+};
+
+struct pieza{
+    coord original;
+    coord periferico[3];
+    char C;
+    coord posicion(int n);
+};
+
+coord pieza::posicion(int n){
+    coord retorno = {original.x, original.y};
+    if(n != 0){
+        retorno.x += periferico[n-1].x;
+        retorno.y += periferico[n-1].y;
+    };
+    return retorno;
+}
+
+coord peris[4][3] = {{{2,0},{4,0},{6,0}},
+                     {{2,0},{4,0},{   }},
+                     {{2,0},{4,0},{   }},
+                     {{   },{   },{   }}
+};
+
+char barcos[4] = {'P','S','D','F'};
+
 class enemigo{
 private :
     public:
@@ -80,86 +108,54 @@ void enemigo::borrar(int x,int y){
     gotoxy(x,y);
     cout<<" ";
 }
+
 class jugador{
     public:
-        void pintar_portraaviones(int, int, int);
-        void borrar_portaaviones(int, int, int);
-        void mover_portaaviones(int &, int &, int);
+        void pintar(pieza &);
+        void rotar(pieza &);
+        coord rotar(coord &);
+        void seleccionar(pieza &, int);
 };
 
-void jugador::pintar_portraaviones(int x, int y, int d){
-    if(d == 0){
-        gotoxy(x,y);
-        cout<<"P";
-        gotoxy(x,y+2);
-        cout<<"P";
-        gotoxy(x,y+4);
-        cout<<"P";
-        gotoxy(x,y+6);
-        cout<<"P";
-    } else{
-        gotoxy(x,y);
-        cout<<"P";
-        gotoxy(x+2,y);
-        cout<<"P";
-        gotoxy(x+4,y);
-        cout<<"P";
-        gotoxy(x+6,y);
-        cout<<"P";
-    }
+void jugador::pintar(pieza &P){
+    for(int i=0; i<4; i++){
+        coord c = P.posicion(i);
+        ma[c.x][c.y] = P.C;
+    };
 }
 
-void jugador::borrar_portaaviones(int x, int y, int d){
-    if(d == 0){
-        gotoxy(x,y);
-        cout<<" ";
-        gotoxy(x,y+2);
-        cout<<" ";
-        gotoxy(x,y+4);
-        cout<<" ";
-        gotoxy(x,y+6);
-        cout<<" ";
-    } else{
-        gotoxy(x,y);
-        cout<<" ";
-        gotoxy(x+2,y);
-        cout<<" ";
-        gotoxy(x+4,y);
-        cout<<" ";
-        gotoxy(x+6,y);
-        cout<<" ";
-    }
+coord jugador::rotar(coord &c)
+{
+    coord ret = {c.y,c.x};
+    return ret;
+}
+void jugador::rotar(pieza &P){
+    for(int i=0; i<3; i++){
+        P.periferico[i] = jugador::rotar(P.periferico[i]);
+    };
 }
 
-void jugador::mover_portaaviones(int &x, int &y, int d){
-    if(kbhit()){
-        jugador::borrar_portaaviones(x,y,d);
-        char tecla = getch();
-        if(tecla == 'a' && x>2)
-            x-=2;
-        if(tecla == 'd' && x<20)
-            x+=2;
-        if(tecla == 's' && y<46)
-            y+=2;
-        if(tecla == 'w' && y>28)
-            y-=2;
-        jugador::pintar_portraaviones(x,y,d);
-    }
+void jugador::seleccionar(pieza &P, int r){
+    P.original.x = 2;
+    P.original.y = 2;
+    P.C = barcos[r];
+    for(int i=0; i<3; i++){
+        P.periferico[i] = peris[r][i];
+    };
 }
 
 int main(){
     enemigo a;
     jugador b;
-    int q1=2,w1=3;
-    int q2=2,w2=28;
+    pieza S;
+    int r = 0;
 
-    gotoxy(0, 0);
-    a.pintarmapa();
+    b.seleccionar(S,r);
+    //a.pintarmapa();
+    b.pintar(S);
     gotoxy(0, 25);
     a.pintarmapa();
 
-    while(true){
-        b.mover_portaaviones(q2,w2, 0);
-    }
-
+    system("pause");
+    return 0;
 }
