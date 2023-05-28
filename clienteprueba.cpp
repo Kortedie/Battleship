@@ -9,11 +9,12 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        cerr << "Debe proporcionar la dirección IP del servidor" << endl;
+        cerr << "Debe proporcionar la dirección IP del servidor y el puerto" << endl;
         return 1;
     }
 
     string serverIP = argv[1];
+    int port = stoi(argv[2]);
     int clientSocket;
     struct sockaddr_in serverAddress;
 
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     // Configurar la dirección del servidor
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
+    serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = inet_addr(serverIP.c_str());
 
     // Conectar al servidor
@@ -39,6 +40,7 @@ int main(int argc, char* argv[]) {
     char buffer[1024];
     string message;
     bool playerTurn = true;
+    int aux = 0;
 
     while (true) {
         // Limpiar el buffer
@@ -47,8 +49,14 @@ int main(int argc, char* argv[]) {
         // Verificar si es el turno del jugador
         if (playerTurn) {
             // Leer la entrada del jugador desde la consola
-            cout << "Ingrese una coordenada para disparar (por ejemplo, A1): ";
-            cin >> message;
+            if (aux == 1){
+                cout << "Ingrese una coordenada para disparar (por ejemplo, A1): ";
+                cin >> message;
+            } else {
+                cout << "Ingrese nombre de jugador: ";
+                cin >> message;
+                aux++;
+            }
 
             // Enviar el disparo al servidor
             write(clientSocket, message.c_str(), message.length());
