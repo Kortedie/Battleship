@@ -1,1 +1,6 @@
-{}
+{
+    "files.associations": {
+        "ostream": "cpp",
+        "thread": "cpp"
+    }
+}
