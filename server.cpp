@@ -80,11 +80,11 @@ void sendShotResult(int clientSocket, char result) {
     send(clientSocket, &result, 1, 0);
 }
 
-void handleClient(int clientSocket, char *boardData, const std::vector<int> &clientSockets, const std::vector<char> &playerSymbols) {
+void handleClient(int clientSocket, char *boardData, const vector<int> &clientSockets, const vector<char> &playerSymbols) {
     // Definir el símbolo del jugador
     char playerSymbol = 'A' + clientSockets.size() - 1;
 
-    std::cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << std::endl;
+    cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << endl;
 
     // Enviar el tablero inicial al nuevo jugador
     sendBoard(clientSocket, boardData);
@@ -93,7 +93,7 @@ void handleClient(int clientSocket, char *boardData, const std::vector<int> &cli
     char startingPlayer = playerSymbols[rand() % playerSymbols.size()];
     sendStartingPlayer(clientSocket, startingPlayer);
 
-    std::cout << "¡Comienza el jugador " << startingPlayer << "!" << std::endl;
+    cout << "¡Comienza el jugador " << startingPlayer << "!" << endl;
 
     // Bucle para jugar el juego
     bool gameRunning = true;
@@ -103,7 +103,7 @@ void handleClient(int clientSocket, char *boardData, const std::vector<int> &cli
         memset(buffer, 0, BUFFER_SIZE);
         int bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, 0);
         if (bytesRead <= 0) {
-            std::cout << "El jugador " << playerSymbol << " ha desconectado." << std::endl;
+            cout << "El jugador " << playerSymbol << " ha desconectado." << endl;
             gameRunning = false;
             break;
         }
@@ -125,7 +125,7 @@ void handleClient(int clientSocket, char *boardData, const std::vector<int> &cli
 
         // Verificar si el juego ha terminado
         if (isGameOver(boardData)) {
-            std::cout << "¡El jugador " << playerSymbol << " ha ganado!" << std::endl;
+            cout << "¡El jugador " << playerSymbol << " ha ganado!" << endl;
             gameRunning = false;
             break;
         }
@@ -142,16 +142,16 @@ void handleClient(int clientSocket, char *boardData, const std::vector<int> &cli
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        std::cout << "Uso: " << argv[0] << " <puerto del servidor>" << std::endl;
+        cout << "Uso: " << argv[0] << " <puerto del servidor>" << endl;
         return 1;
     }
 
-    int serverPort = std::stoi(argv[1]);
+    int serverPort = stoi(argv[1]);
 
     // Crear el socket del servidor
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == -1) {
-        std::cerr << "Error al crear el socket" << std::endl;
+        cerr << "Error al crear el socket" << endl;
         return 1;
     }
 
@@ -163,20 +163,20 @@ int main(int argc, char *argv[]) {
 
     // Vincular el socket a la dirección del servidor
     if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
-        std::cerr << "Error al vincular el socket" << std::endl;
+        cerr << "Error al vincular el socket" << endl;
         return 1;
     }
 
     // Escuchar conexiones entrantes
     if (listen(serverSocket, 5) < 0) {
-        std::cerr << "Error al escuchar conexiones entrantes" << std::endl;
+        cerr << "Error al escuchar conexiones entrantes" << endl;
         return 1;
     }
 
-    std::vector<int> clientSockets;
-    std::vector<char> playerSymbols;
+    vector<int> clientSockets;
+    vector<char> playerSymbols;
 
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    srand(static_cast<unsigned int>(time(nullptr)));
 
     // Crear el tablero y posicionar los barcos
     char boardData[15 * 15];
@@ -192,14 +192,14 @@ int main(int argc, char *argv[]) {
 
     // Ciclo principal para aceptar conexiones y jugar el juego
     while (true) {
-        std::cout << "Esperando jugadores..." << std::endl;
+        cout << "Esperando jugadores..." << endl;
 
         // Aceptar nueva conexión de un cliente
         sockaddr_in clientAddress{};
         socklen_t clientAddressLength = sizeof(clientAddress);
         int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLength);
         if (clientSocket < 0) {
-            std::cerr << "Error al aceptar la conexión del cliente" << std::endl;
+            cerr << "Error al aceptar la conexión del cliente" << endl;
             continue;
         }
 
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
         char playerSymbol = 'A' + clientSockets.size() - 1;
         playerSymbols.push_back(playerSymbol);
 
-        std::cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << std::endl;
+        cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << endl;
 
         // Enviar el tablero inicial al nuevo jugador
         sendBoard(clientSocket, boardData);
@@ -219,10 +219,10 @@ int main(int argc, char *argv[]) {
         char startingPlayer = playerSymbols[rand() % playerSymbols.size()];
         sendStartingPlayer(clientSocket, startingPlayer);
 
-        std::cout << "¡Comienza el jugador " << startingPlayer << "!" << std::endl;
+        cout << "¡Comienza el jugador " << startingPlayer << "!" << endl;
 
         // Crear un hilo para manejar la conexión del cliente
-        std::thread clientThread(handleClient, clientSocket, playerSymbol, boardData, clientSockets);
+        thread clientThread(handleClient, clientSocket, playerSymbol, boardData, clientSockets);
 
         // Desconectar el hilo del proceso principal
         clientThread.detach();
