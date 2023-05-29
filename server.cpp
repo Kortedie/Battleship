@@ -84,7 +84,19 @@ void sendMissileResult(int clientSocket, char result) {
     send(clientSocket, &result, 1, 0);
 }
 
-void handleClient(int clientSocket, char playerSymbol, char *boardData, const vector<int> &clientSockets) {
+void sendOpponentShot(int clientSocket, int row, int col) {
+    char buffer[BUFFER_SIZE];
+    buffer[0] = row + '0';
+    buffer[1] = ',';
+    buffer[2] = col + '0';
+    send(clientSocket, buffer, 3, 0);
+}
+
+void sendOpponentShotResult(int clientSocket, char result) {
+    send(clientSocket, &result, 1, 0);
+}
+
+void handleClient(int clientSocket, char playerSymbol, char *boardData, const vector<int> &clientSockets, int boardSize) {
     cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << endl;
 
     // Enviar el tablero inicial al nuevo jugador
@@ -139,6 +151,53 @@ void handleClient(int clientSocket, char playerSymbol, char *boardData, const ve
         // Notificar al cliente si el misil falló
         if (result == 'O') {
             sendMissileResult(clientSocket, 'F');
+        }
+
+         // Realizar el turno del servidor (jugador contrario)
+        if (startingPlayer != playerSymbol) {
+            // Generar un disparo aleatorio del servidor
+            int serverRow, serverCol;
+            bool isValid = false;
+            while (!isValid) {
+                serverRow = rand() % 15;
+                serverCol = rand() % 15;
+                if (boardData[serverRow * 15 + serverCol] == '.') {
+                    isValid = true;
+                }
+            }
+
+            // Verificar el resultado del disparo del servidor
+            char serverResult;
+            if (boardData[serverRow * 15 + serverCol] != '.') {
+                serverResult = 'X';
+                boardData[serverRow * 15 + serverCol] = 'X';
+            } else {
+                serverResult = 'O';
+            }
+
+            // Enviar el resultado del disparo del servidor al cliente
+            sendOpponentShot(clientSocket, serverRow, serverCol);
+            sendShotResult(clientSocket, serverResult);
+            sendOpponentShotResult(clientSocket, serverResult);
+
+            // Verificar si el juego ha terminado después del disparo del servidor
+            if (isGameOver(boardData)) {
+                cout << "¡El servidor ha ganado!" << endl;
+                gameRunning = false;
+                break;
+            }
+
+            // Enviar el tablero actualizado a todos los jugadores
+            for (int socket : clientSockets) {
+                sendBoard(socket, boardData);
+            }
+
+            // Notificar al cliente si el misil del servidor falló o acertó al jugador
+            if (serverResult == 'O') {
+                sendMissileResult(clientSocket, 'M');
+            } else if (serverResult == 'X') {
+                sendMissileResult(clientSocket, 'H');
+            }
         }
     }
 
