@@ -80,6 +80,10 @@ void sendShotResult(int clientSocket, char result) {
     send(clientSocket, &result, 1, 0);
 }
 
+void sendMissileResult(int clientSocket, char result) {
+    send(clientSocket, &result, 1, 0);
+}
+
 void handleClient(int clientSocket, char playerSymbol, char *boardData, const vector<int> &clientSockets) {
     cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << endl;
 
@@ -130,6 +134,11 @@ void handleClient(int clientSocket, char playerSymbol, char *boardData, const ve
         // Enviar el tablero actualizado a todos los jugadores
         for (int socket : clientSockets) {
             sendBoard(socket, boardData);
+        }
+
+        // Notificar al cliente si el misil falló
+        if (result == 'O') {
+            sendMissileResult(clientSocket, 'F');
         }
     }
 
