@@ -80,17 +80,14 @@ void sendShotResult(int clientSocket, char result) {
     send(clientSocket, &result, 1, 0);
 }
 
-void handleClient(int clientSocket, char *boardData, const vector<int> &clientSockets, const vector<char> &playerSymbols) {
-    // Definir el símbolo del jugador
-    char playerSymbol = 'A' + clientSockets.size() - 1;
-
+void handleClient(int clientSocket, char playerSymbol, char *boardData, const vector<int> &clientSockets) {
     cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << endl;
 
     // Enviar el tablero inicial al nuevo jugador
     sendBoard(clientSocket, boardData);
 
     // Seleccionar al azar quién comienza
-    char startingPlayer = playerSymbols[rand() % playerSymbols.size()];
+    char startingPlayer = rand() % 2 == 0 ? 'A' : 'B';
     sendStartingPlayer(clientSocket, startingPlayer);
 
     cout << "¡Comienza el jugador " << startingPlayer << "!" << endl;
@@ -136,7 +133,7 @@ void handleClient(int clientSocket, char *boardData, const vector<int> &clientSo
         }
     }
 
-    // Cerrar la conexión con el cliente y eliminarlo de los vectores
+    // Cerrar la conexión con el cliente
     close(clientSocket);
 }
 
@@ -174,7 +171,6 @@ int main(int argc, char *argv[]) {
     }
 
     vector<int> clientSockets;
-    vector<char> playerSymbols;
 
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -208,18 +204,6 @@ int main(int argc, char *argv[]) {
 
         // Definir el símbolo del jugador
         char playerSymbol = 'A' + clientSockets.size() - 1;
-        playerSymbols.push_back(playerSymbol);
-
-        cout << "¡Nuevo jugador conectado! Símbolo del jugador: " << playerSymbol << endl;
-
-        // Enviar el tablero inicial al nuevo jugador
-        sendBoard(clientSocket, boardData);
-
-        // Seleccionar al azar quién comienza
-        char startingPlayer = playerSymbols[rand() % playerSymbols.size()];
-        sendStartingPlayer(clientSocket, startingPlayer);
-
-        cout << "¡Comienza el jugador " << startingPlayer << "!" << endl;
 
         // Crear un hilo para manejar la conexión del cliente
         thread clientThread(handleClient, clientSocket, playerSymbol, boardData, clientSockets);
@@ -233,3 +217,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
